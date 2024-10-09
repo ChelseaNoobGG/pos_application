@@ -1,20 +1,21 @@
 import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
-import { Layout, Menu } from "antd";
+import { Layout, Menu, Badge } from "antd";
 import { Link, useNavigate } from "react-router-dom";
 import {
   ShopOutlined,
   MenuUnfoldOutlined,
   MenuFoldOutlined,
-  UserOutlined,
   LogoutOutlined,
   HomeOutlined,
   CopyOutlined,
   UnorderedListOutlined,
   ShoppingCartOutlined,
+  QrcodeOutlined,
 } from "@ant-design/icons";
 import "../styles/DefaultLayout.css";
 import Spinner from "./Spinner";
+
 const { Header, Sider, Content } = Layout;
 
 const DefaultLayout = ({ children }) => {
@@ -25,7 +26,7 @@ const DefaultLayout = ({ children }) => {
   const toggle = () => {
     setCollapsed(!collapsed);
   };
-  //to get localstorage data
+
   useEffect(() => {
     localStorage.setItem("cartItems", JSON.stringify(cartItems));
   }, [cartItems]);
@@ -35,24 +36,28 @@ const DefaultLayout = ({ children }) => {
       {loading && <Spinner />}
       <Sider trigger={null} collapsible collapsed={collapsed}>
         <div className="logo">
-          <h1 className="text-center text-light font-wight-bold mt-4">POS</h1>
+          <h1 className="text-center text-light font-weight-bold mt-3">POS</h1>
         </div>
         <Menu
           theme="dark"
           mode="inline"
           defaultSelectedKeys={window.location.pathname}
+          style={{ marginTop: "10px" }}
         >
           <Menu.Item key="/" icon={<HomeOutlined />}>
-            <Link to="/">Home</Link>
+            <Link to="/">หน้าหลัก</Link>
           </Menu.Item>
           <Menu.Item key="/bills" icon={<CopyOutlined />}>
-            <Link to="/bills">Bills</Link>
+            <Link to="/bills">ใบเสร็จ</Link>
           </Menu.Item>
           <Menu.Item key="/items" icon={<ShopOutlined />}>
-            <Link to="/items">Items</Link>
+            <Link to="/items">รายการสินค้า</Link>
           </Menu.Item>
           <Menu.Item key="/types" icon={<UnorderedListOutlined />}>
-            <Link to="/types ">Types</Link>
+            <Link to="/types">ประเภทสินค้า</Link>
+          </Menu.Item>
+          <Menu.Item key="/qrcode" icon={<QrcodeOutlined />}>
+            <Link to="/qrcode">QR-CODE</Link>
           </Menu.Item>
           <Menu.Item
             key="/logout"
@@ -62,12 +67,12 @@ const DefaultLayout = ({ children }) => {
               navigate("/login");
             }}
           >
-            Logout
+            ออกจากระบบ
           </Menu.Item>
         </Menu>
       </Sider>
       <Layout className="site-layout">
-        <Header className="site-layout-background" style={{ padding: 0 }}>
+        <Header className="site-layout-background header-layout">
           {React.createElement(
             collapsed ? MenuUnfoldOutlined : MenuFoldOutlined,
             {
@@ -76,11 +81,13 @@ const DefaultLayout = ({ children }) => {
             }
           )}
           <div
-            className="cart-item d-flex jusitfy-content-space-between flex-row"
+            className="cart-item d-flex align-items-center"
             onClick={() => navigate("/cart")}
           >
-            <p>{cartItems.length}</p>
-            <ShoppingCartOutlined />
+            <Badge count={cartItems.length} offset={[5, 5]} color="#f5222d">
+              <ShoppingCartOutlined className="shopping-cart-icon" />
+            </Badge>
+            <span className="cart-label">ตะกร้าสินค้า</span>
           </div>
         </Header>
         <Content
@@ -88,7 +95,9 @@ const DefaultLayout = ({ children }) => {
           style={{
             margin: "24px 16px",
             padding: 24,
-            minHeight: 280,
+            minHeight: "100vh",
+            backgroundColor: "#f0f2f5",
+            borderRadius: "8px",
           }}
         >
           {children}

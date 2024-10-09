@@ -11,13 +11,13 @@ const TypePage = () => {
   const [popupModal, setPopupModal] = useState(false);
   const [editType, setEditType] = useState(null);
 
+  // ฟังก์ชันสำหรับดึงข้อมูลประเภทสินค้า
   const getAllTypes = async () => {
     try {
       dispatch({ type: "SHOW_LOADING" });
       const { data } = await axios.get("/api/types/get-type");
       setTypesData(data);
       dispatch({ type: "HIDE_LOADING" });
-      console.log(data);
     } catch (error) {
       dispatch({ type: "HIDE_LOADING" });
       console.log(error);
@@ -26,85 +26,84 @@ const TypePage = () => {
 
   useEffect(() => {
     getAllTypes();
-    //eslint-disable-next-line
   }, []);
 
+  // ฟังก์ชันสำหรับลบประเภทสินค้า
   const handleDelete = async (record) => {
     try {
       dispatch({ type: "SHOW_LOADING" });
       await axios.post("/api/types/delete-type", { typeId: record._id });
-      message.success("Type Deleted Successfully");
+      message.success("ลบประเภทสินค้าสำเร็จ");
       getAllTypes();
       setPopupModal(false);
       dispatch({ type: "HIDE_LOADING" });
     } catch (error) {
       dispatch({ type: "HIDE_LOADING" });
-      message.error("Something Went Wrong");
-      console.log(error);
+      message.error("เกิดข้อผิดพลาด");
     }
   };
 
+  // คอลัมน์สำหรับ Table
   const columns = [
-    { title: "Name", dataIndex: "name" },
+    { title: "ชื่อประเภท", dataIndex: "name" },
     {
-      title: "Image",
+      title: "รูปภาพ",
       dataIndex: "image",
       render: (image, record) => (
         <img src={image} alt={record.name} height="60" width="60" />
       ),
     },
     {
-      title: "Actions",
+      title: "การกระทำ",
       dataIndex: "_id",
       render: (id, record) => (
-        <div>
+        <div style={{ display: "flex", justifyContent: "space-around" }}>
           <EditOutlined
-            style={{ cursor: "pointer" }}
+            style={{ cursor: "pointer", color: "#1890ff" }}
             onClick={() => {
               setEditType(record);
               setPopupModal(true);
             }}
           />
           <DeleteOutlined
-            style={{ cursor: "pointer" }}
-            onClick={() => {
-              handleDelete(record);
-            }}
+            style={{ cursor: "pointer", color: "#ff4d4f" }}
+            onClick={() => handleDelete(record)}
           />
         </div>
       ),
     },
   ];
 
+  // ฟังก์ชันสำหรับจัดการฟอร์ม
   const handleSubmit = async (value) => {
-    if (editType === null) {
+    if (!editType) {
+      // เพิ่มประเภทใหม่
       try {
         dispatch({ type: "SHOW_LOADING" });
-        const res = await axios.post("/api/types/add-type", value);
-        message.success("Type Added Successfully");
+        await axios.post("/api/types/add-type", value);
+        message.success("เพิ่มประเภทสินค้าเรียบร้อยแล้ว");
         getAllTypes();
         setPopupModal(false);
         dispatch({ type: "HIDE_LOADING" });
       } catch (error) {
         dispatch({ type: "HIDE_LOADING" });
-        message.error("Something Went Wrong");
-        console.log(error);
+        message.error("เกิดข้อผิดพลาด");
       }
     } else {
+      // แก้ไขประเภทสินค้า
       try {
         dispatch({ type: "SHOW_LOADING" });
         await axios.put("/api/types/edit-type", {
           ...value,
           typeId: editType._id,
         });
-        message.success("Type Updated Successfully");
+        message.success("แก้ไขประเภทสินค้าเรียบร้อยแล้ว");
         getAllTypes();
         setPopupModal(false);
         dispatch({ type: "HIDE_LOADING" });
       } catch (error) {
         dispatch({ type: "HIDE_LOADING" });
-        message.error("Something Went Wrong");
-        console.log(error);
+        message.error("เกิดข้อผิดพลาด");
       }
     }
   };
@@ -112,39 +111,53 @@ const TypePage = () => {
   return (
     <DefaultLayout>
       <div className="d-flex justify-content-between">
-        <h1>Type List</h1>
-        <Button type="primary" onClick={() => setPopupModal(true)}>
-          Add Type
+        <h1>รายการประเภทสินค้า</h1>
+        <Button
+          type="primary"
+          onClick={() => {
+            setEditType(null);
+            setPopupModal(true);
+          }}
+        >
+          เพิ่มประเภทสินค้า
         </Button>
       </div>
 
-      <Table columns={columns} dataSource={typesData} bordered />
+      <Table columns={columns} dataSource={typesData} bordered rowKey="_id" />
 
       {popupModal && (
         <Modal
-          title={`${editType !== null ? "Edit Type" : "Add New Type"}`}
+          title={`${editType ? "แก้ไขประเภทสินค้า" : "เพิ่มประเภทสินค้า"}`}
           visible={popupModal}
           onCancel={() => {
             setEditType(null);
             setPopupModal(false);
           }}
-          footer={false}
+          footer={null}
         >
           <Form
             layout="vertical"
             initialValues={editType}
             onFinish={handleSubmit}
           >
-            <Form.Item name="name" label="Name">
+            <Form.Item
+              name="name"
+              label="ชื่อประเภทสินค้า"
+              rules={[{ required: true, message: "กรุณากรอกชื่อประเภทสินค้า" }]}
+            >
               <Input />
             </Form.Item>
-            <Form.Item name="image" label="Image URL">
+            <Form.Item
+              name="image"
+              label="URL รูปภาพ"
+              rules={[{ required: true, message: "กรุณากรอก URL รูปภาพ" }]}
+            >
               <Input />
             </Form.Item>
 
             <div className="d-flex justify-content-end">
               <Button type="primary" htmlType="submit">
-                SAVE
+                บันทึก
               </Button>
             </div>
           </Form>

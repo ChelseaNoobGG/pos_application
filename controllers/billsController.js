@@ -5,9 +5,9 @@ const addBillsController = async (req, res) => {
   try {
     const newBill = new billsModel(req.body);
     await newBill.save();
-    res.send("Bill Created Successfully!");
+    res.send("ออกใบเสร็จเรียบร้อย");
   } catch (error) {
-    res.send("something went wrong");
+    res.send("เกิดข้อผิดพลาด");
     console.log(error);
   }
 };

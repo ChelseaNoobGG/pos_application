@@ -9,7 +9,7 @@ const Homepage = () => {
   const [itemsData, setItemsData] = useState([]);
   const dispatch = useDispatch();
 
-  // useEffect
+  // useEffect for fetching items
   useEffect(() => {
     const getAllItems = async () => {
       try {
@@ -19,6 +19,7 @@ const Homepage = () => {
         dispatch({ type: "HIDE_LOADING" });
       } catch (error) {
         console.log(error);
+        dispatch({ type: "HIDE_LOADING" });
       }
     };
     getAllItems();
@@ -26,13 +27,18 @@ const Homepage = () => {
 
   return (
     <DefaultLayout>
-      <Row gutter={16}>
-        {itemsData.map((item) => (
-          <Col xs={24} lg={6} md={12} sm={12} key={item._id}>
-            <ItemList item={item} />
-          </Col>
-        ))}
-      </Row>
+      <div style={{ padding: "20px" }}>
+        <h1 style={{ textAlign: "center", marginBottom: "30px", fontSize: "32px" }}>
+          รายการสินค้าทั้งหมด
+        </h1>
+        <Row gutter={[24, 24]}>
+          {itemsData.map((item) => (
+            <Col xs={24} lg={6} md={12} sm={12} key={item._id}>
+              <ItemList item={item} />
+            </Col>
+          ))}
+        </Row>
+      </div>
     </DefaultLayout>
   );
 };

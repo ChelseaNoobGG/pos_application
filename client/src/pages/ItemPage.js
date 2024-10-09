@@ -12,177 +12,182 @@ const ItemPage = () => {
   const [editItem, setEditItem] = useState(null);
   const [typesData, setTypesData] = useState([]); // state สำหรับ types
 
+  // ฟังก์ชันสำหรับดึงข้อมูลสินค้า
   const getAllItems = async () => {
     try {
-      dispatch({
-        type: "SHOW_LOADING",
-      });
+      dispatch({ type: "SHOW_LOADING" });
       const { data } = await axios.get("/api/items/get-item");
       setItemsData(data);
       dispatch({ type: "HIDE_LOADING" });
-      console.log(data);
     } catch (error) {
       dispatch({ type: "HIDE_LOADING" });
       console.log(error);
     }
   };
 
+  // ฟังก์ชันสำหรับดึงข้อมูลประเภทสินค้า
   const getAllTypes = async () => {
     try {
-      const { data } = await axios.get("/api/types/get-type"); // ปรับ endpoint ให้ถูกต้อง
+      const { data } = await axios.get("/api/types/get-type");
       setTypesData(data);
     } catch (error) {
       console.log(error);
     }
   };
 
-  // useEffect
   useEffect(() => {
     getAllItems();
-    getAllTypes(); // เรียกใช้ getAllTypes เพื่อดึงประเภท
-    // eslint-disable-next-line
+    getAllTypes(); // เรียกใช้ getAllTypes เพื่อดึงประเภทสินค้า
   }, []);
 
-  // handle delete
+  // ฟังก์ชันสำหรับลบสินค้า
   const handleDelete = async (record) => {
     try {
-      dispatch({
-        type: "SHOW_LOADING",
-      });
+      dispatch({ type: "SHOW_LOADING" });
       await axios.post("/api/items/delete-item", { itemId: record._id });
-      message.success("Item Deleted Successfully");
+      message.success("ลบสินค้าเรียบร้อยแล้ว");
       getAllItems();
-      setPopupModal(false);
       dispatch({ type: "HIDE_LOADING" });
     } catch (error) {
       dispatch({ type: "HIDE_LOADING" });
-      message.error("Something Went Wrong");
-      console.log(error);
+      message.error("เกิดข้อผิดพลาด");
     }
   };
 
-  // table data
+  // column สำหรับ Table
   const columns = [
-    { title: "Name", dataIndex: "name" },
+    { title: "ชื่อสินค้า", dataIndex: "name" },
     {
-      title: "Image",
+      title: "รูปภาพ",
       dataIndex: "image",
       render: (image, record) => (
         <img src={image} alt={record.name} height="60" width="60" />
       ),
     },
-    { title: "Price", dataIndex: "price" },
-    { title: "Category", dataIndex: "category", render: (category) => category.name }, // แสดงชื่อของ category
-
+    { title: "ราคา", dataIndex: "price" },
+    { title: "ประเภทสินค้า", dataIndex: "category", render: (category) => category?.name }, // แสดงชื่อของ category
     {
-      title: "Actions",
+      title: "การกระทำ",
       dataIndex: "_id",
       render: (id, record) => (
         <div>
           <EditOutlined
-            style={{ cursor: "pointer" }}
+            style={{ cursor: "pointer", marginRight: "10px", color: "#1890ff" }}
             onClick={() => {
               setEditItem(record);
               setPopupModal(true);
             }}
           />
           <DeleteOutlined
-            style={{ cursor: "pointer" }}
-            onClick={() => {
-              handleDelete(record);
-            }}
+            style={{ cursor: "pointer", color: "#ff4d4f" }}
+            onClick={() => handleDelete(record)}
           />
         </div>
       ),
     },
   ];
 
-  // handle form submit
+  // ฟังก์ชันสำหรับจัดการฟอร์ม
   const handleSubmit = async (value) => {
-    if (editItem === null) {
+    if (!editItem) {
       try {
-        dispatch({
-          type: "SHOW_LOADING",
-        });
-        const res = await axios.post("/api/items/add-item", value);
-        message.success("Item Added Successfully");
+        dispatch({ type: "SHOW_LOADING" });
+        await axios.post("/api/items/add-item", value);
+        message.success("เพิ่มสินค้าเรียบร้อยแล้ว");
         getAllItems();
         setPopupModal(false);
         dispatch({ type: "HIDE_LOADING" });
       } catch (error) {
         dispatch({ type: "HIDE_LOADING" });
-        message.error("Something Went Wrong");
-        console.log(error);
+        message.error("เกิดข้อผิดพลาด");
       }
     } else {
       try {
-        dispatch({
-          type: "SHOW_LOADING",
-        });
+        dispatch({ type: "SHOW_LOADING" });
         await axios.put("/api/items/edit-item", {
           ...value,
           itemId: editItem._id,
         });
-        message.success("Item Updated Successfully");
+        message.success("แก้ไขสินค้าเรียบร้อยแล้ว");
         getAllItems();
         setPopupModal(false);
         dispatch({ type: "HIDE_LOADING" });
       } catch (error) {
         dispatch({ type: "HIDE_LOADING" });
-        message.error("Something Went Wrong");
-        console.log(error);
+        message.error("เกิดข้อผิดพลาด");
       }
     }
   };
 
   return (
     <DefaultLayout>
-      <div className="d-flex justify-content-between">
-        <h1>Item List</h1>
-        <Button type="primary" onClick={() => setPopupModal(true)}>
-          Add Item
+      <div className="d-flex justify-content-between mb-4">
+        <h1>รายการสินค้า</h1>
+        <Button
+          type="primary"
+          onClick={() => {
+            setEditItem(null);
+            setPopupModal(true);
+          }}
+        >
+          เพิ่มสินค้า
         </Button>
       </div>
 
-      <Table columns={columns} dataSource={itemsData} bordered />
+      <Table columns={columns} dataSource={itemsData} bordered rowKey="_id" />
 
       {popupModal && (
         <Modal
-          title={`${editItem !== null ? "Edit Item " : "Add New Item"}`}
+          title={`${editItem ? "แก้ไขสินค้า" : "เพิ่มสินค้า"}`}
           visible={popupModal}
           onCancel={() => {
             setEditItem(null);
             setPopupModal(false);
           }}
-          footer={false}
+          footer={null}
         >
           <Form
             layout="vertical"
             initialValues={editItem}
             onFinish={handleSubmit}
           >
-            <Form.Item name="name" label="Name">
+            <Form.Item
+              name="name"
+              label="ชื่อสินค้า"
+              rules={[{ required: true, message: "กรุณากรอกชื่อสินค้า" }]}
+            >
               <Input />
             </Form.Item>
-            <Form.Item name="price" label="Price">
+            <Form.Item
+              name="price"
+              label="ราคา"
+              rules={[{ required: true, message: "กรุณากรอกราคา" }]}
+            >
               <Input />
             </Form.Item>
-            <Form.Item name="image" label="Image URL">
+            <Form.Item
+              name="image"
+              label="URL รูปภาพ"
+              rules={[{ required: true, message: "กรุณากรอก URL รูปภาพ" }]}
+            >
               <Input />
             </Form.Item>
-            <Form.Item name="category" label="Category">
+            <Form.Item
+              name="category"
+              label="ประเภทสินค้า"
+              rules={[{ required: true, message: "กรุณาเลือกประเภทสินค้า" }]}
+            >
               <Select>
                 {typesData.map((type) => (
                   <Select.Option key={type._id} value={type._id}>
-                    {type.name} {/* แสดงชื่อประเภท */}
+                    {type.name}
                   </Select.Option>
                 ))}
               </Select>
             </Form.Item>
-
             <div className="d-flex justify-content-end">
               <Button type="primary" htmlType="submit">
-                SAVE
+                บันทึก
               </Button>
             </div>
           </Form>

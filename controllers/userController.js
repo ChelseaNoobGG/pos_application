@@ -9,7 +9,7 @@ const loginController = async (req, res) => {
       res.status(200).send(user);
     } else {
       res.json({
-        message: "Login Fail",
+        message: "ล็อคอินไม่สำเร็จ",
         user,
       });
     }
@@ -23,9 +23,9 @@ const registerController = async (req, res) => {
   try {
     const newUser = new userModal({ ...req.body, verified: true });
     await newUser.save();
-    res.status(201).send("new User added Successfully!");
+    res.status(201).send("สมัครสมาชิกเรียบร้อย");
   } catch (error) {
-    res.status(400).send("error", error);
+    res.status(400).send("เกิดข้อผิดพลาด", error);
     console.log(error);
   }
 };
